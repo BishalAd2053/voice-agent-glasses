@@ -13,7 +13,11 @@ struct VoiceAgentApp: App {
         let session = DATSessionManager()
         let settings = AppSettings()
         let speech = SpeechRecognizer()
-        let agent = AgentCoordinator(settings: settings, session: session)
+        let agent = AgentCoordinator(
+            conversation: ConversationStore(),
+            speaker: Speaker(),
+            settings: settings,
+            session: session)
         _session = StateObject(wrappedValue: session)
         _settings = StateObject(wrappedValue: settings)
         _speech = StateObject(wrappedValue: speech)

@@ -14,8 +14,8 @@ final class AgentCoordinator: ObservableObject {
 
     private var streamTask: Task<Void, Never>?
 
-    init(conversation: ConversationStore = .init(),
-         speaker: Speaker = .init(),
+    init(conversation: ConversationStore,
+         speaker: Speaker,
          settings: AppSettings,
          session: DATSessionManager) {
         self.conversation = conversation
