@@ -3,12 +3,16 @@ import SwiftUI
 import Combine
 import UIKit
 
-#if canImport(DeviceAccessToolkit)
-import DeviceAccessToolkit
+#if canImport(MWDATCore)
+import MWDATCore
 #endif
 
-#if canImport(MockDeviceKit)
-import MockDeviceKit
+#if canImport(MWDATCamera)
+import MWDATCamera
+#endif
+
+#if canImport(MWDATMockDevice)
+import MWDATMockDevice
 #endif
 
 enum SessionState: Equatable {
@@ -52,7 +56,7 @@ final class DATSessionManager: ObservableObject {
     func start() async {
         state = .connecting
 
-        #if canImport(DeviceAccessToolkit)
+        #if canImport(MWDATCore)
         isUsingMock = false
         await connectReal()
         #else
@@ -69,7 +73,7 @@ final class DATSessionManager: ObservableObject {
 
     // MARK: - Real DAT path
 
-    #if canImport(DeviceAccessToolkit)
+    #if canImport(MWDATCore)
     private func connectReal() async {
         // TODO Phase 1+: wire to actual DAT discovery + session APIs.
         // Real API surface needs to be confirmed against the SDK headers;

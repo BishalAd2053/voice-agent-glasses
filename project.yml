@@ -47,18 +47,17 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: "YES"
 
     # Meta Wearables DAT via Swift Package Manager.
+    # Real product names confirmed from
+    # https://raw.githubusercontent.com/facebook/meta-wearables-dat-ios/0.7.0/Package.swift
     dependencies:
-      - package: DeviceAccessToolkit
-      - package: MockDeviceKit
+      - package: MetaWearablesDAT
+        product: MWDATCore
+      - package: MetaWearablesDAT
+        product: MWDATCamera
+      - package: MetaWearablesDAT
+        product: MWDATMockDevice
 
 packages:
-  DeviceAccessToolkit:
+  MetaWearablesDAT:
     url: https://github.com/facebook/meta-wearables-dat-ios
-    branch: main
-    products:
-      - DeviceAccessToolkit
-  MockDeviceKit:
-    url: https://github.com/facebook/meta-wearables-dat-ios
-    branch: main
-    products:
-      - MockDeviceKit
+    exactVersion: 0.7.0
