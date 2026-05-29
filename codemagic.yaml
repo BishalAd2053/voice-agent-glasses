@@ -1,0 +1,82 @@
+workflows:
+  ios-debug-unsigned:
+    name: iOS debug build (unsigned)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      vars:
+        XCODE_SCHEME: VoiceAgentGlasses
+        XCODE_WORKSPACE: VoiceAgentGlasses.xcodeproj
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        script: |
+          xcodegen generate
+
+      - name: Resolve Swift packages
+        script: |
+          xcodebuild -resolvePackageDependencies \
+            -project "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME"
+
+      - name: Build for simulator (unsigned, fastest sanity check)
+        script: |
+          set -o pipefail
+          xcodebuild \
+            -project "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
+            CODE_SIGNING_ALLOWED=NO \
+            build | xcpretty
+
+    artifacts:
+      - build/ios/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
+
+  ios-device-ad-hoc:
+    name: iOS device build (signed, ad-hoc)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    # Enable this workflow once you've added an Apple Developer account and
+    # signing files in Codemagic → Teams → Code signing identities.
+    # Comment out the `triggering` block to keep it manual-only for now.
+    environment:
+      vars:
+        XCODE_SCHEME: VoiceAgentGlasses
+        XCODE_WORKSPACE: VoiceAgentGlasses.xcodeproj
+        BUNDLE_ID: com.voiceagent.glasses
+      xcode: latest
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: com.voiceagent.glasses
+
+    scripts:
+      - name: Install XcodeGen
+        script: brew install xcodegen
+      - name: Generate Xcode project
+        script: xcodegen generate
+      - name: Resolve packages
+        script: |
+          xcodebuild -resolvePackageDependencies \
+            -project "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME"
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Archive
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log

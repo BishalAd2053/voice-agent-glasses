@@ -1,0 +1,64 @@
+# XcodeGen spec. Run `xcodegen generate` to produce VoiceAgentGlasses.xcodeproj.
+# Codemagic runs this automatically via codemagic.yaml.
+name: VoiceAgentGlasses
+options:
+  bundleIdPrefix: com.voiceagent
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""        # fill in your Apple Developer team ID for signing
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  VoiceAgentGlasses:
+    type: application
+    platform: iOS
+    sources:
+      - path: VoiceAgentGlasses
+        excludes:
+          - "Resources/Info.plist"
+    resources: []
+    info:
+      path: VoiceAgentGlasses/Resources/Info.plist
+      properties:
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        LSRequiresIPhoneOS: true
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSMicrophoneUsageDescription: "Used to capture your voice prompts for the AI agent."
+        NSSpeechRecognitionUsageDescription: "Used to convert your voice into text the agent can act on."
+        NSCameraUsageDescription: "Used to access the Meta glasses camera stream."
+        NSBluetoothAlwaysUsageDescription: "Used to connect to your Meta glasses."
+        NSLocalNetworkUsageDescription: "Used to reach a self-hosted LLM (e.g., Ollama) on your Wi-Fi."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.voiceagent.glasses
+        TARGETED_DEVICE_FAMILY: "1"  # iPhone only
+        ENABLE_PREVIEWS: "YES"
+        SWIFT_EMIT_LOC_STRINGS: "YES"
+
+    # Meta Wearables DAT via Swift Package Manager.
+    dependencies:
+      - package: DeviceAccessToolkit
+      - package: MockDeviceKit
+
+packages:
+  DeviceAccessToolkit:
+    url: https://github.com/facebook/meta-wearables-dat-ios
+    branch: main
+    products:
+      - DeviceAccessToolkit
+  MockDeviceKit:
+    url: https://github.com/facebook/meta-wearables-dat-ios
+    branch: main
+    products:
+      - MockDeviceKit
