@@ -41,6 +41,58 @@ workflows:
       - build/ios/**/*.app
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
 
+  ios-unsigned-ipa:
+    name: iOS device IPA (unsigned, for AltStore)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      vars:
+        XCODE_SCHEME: VoiceAgentGlasses
+        XCODE_PROJECT: VoiceAgentGlasses.xcodeproj
+      xcode: latest
+
+    scripts:
+      - name: Install XcodeGen
+        script: brew install xcodegen
+      - name: Generate Xcode project
+        script: xcodegen generate
+      - name: Resolve packages
+        script: |
+          xcodebuild -resolvePackageDependencies \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME"
+
+      - name: Archive for iOS device, no signing
+        script: |
+          set -o pipefail
+          xcodebuild \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/VoiceAgentGlasses.xcarchive \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            DEVELOPMENT_TEAM="" \
+            ONLY_ACTIVE_ARCH=NO | xcpretty
+
+      - name: Package unsigned IPA for AltStore
+        script: |
+          set -e
+          cd build
+          mkdir -p Payload
+          cp -R VoiceAgentGlasses.xcarchive/Products/Applications/VoiceAgentGlasses.app Payload/
+          # Strip any leftover signature so AltStore re-signs cleanly.
+          rm -rf Payload/VoiceAgentGlasses.app/_CodeSignature 2>/dev/null || true
+          zip -qr VoiceAgentGlasses-unsigned.ipa Payload
+          ls -lh VoiceAgentGlasses-unsigned.ipa
+
+    artifacts:
+      - build/VoiceAgentGlasses-unsigned.ipa
+
   ios-device-ad-hoc:
     name: iOS device build (signed, ad-hoc)
     instance_type: mac_mini_m2
